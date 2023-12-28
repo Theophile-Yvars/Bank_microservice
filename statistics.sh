@@ -1,0 +1,1 @@
+curl --location 'http://localhost:8083/stats/start-calculations'

@@ -1,0 +1,16 @@
+/* You can add global styles to this file, and also import other style files */
+
+html, body { height: 100%; }
+body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+
+/* Importing Bootstrap SCSS file. */
+@import 'bootstrap/scss/bootstrap';
+
+.banner {
+  width: 100%;
+  background: rgba(37, 150, 190, 0.1);
+  border-radius: 5px;
+  padding-left: 30px;
+  margin-top: 10px;
+  margin-bottom: 10px;
+}

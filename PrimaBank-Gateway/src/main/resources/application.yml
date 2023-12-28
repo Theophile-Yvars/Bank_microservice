@@ -1,0 +1,81 @@
+server:
+  port: 9090
+
+logging:
+  level:
+    al.newbank.d.PrimaBankGateway: TRACE
+    io.github.resilience4j.circuitbreaker: TRACE
+
+spring:
+  main:
+    allow-circular-references: true
+  cloud:
+    gateway:
+      default-filters:
+        - DedupeResponseHeader= Access-Control-Allow-Origin
+      globalcors:
+        corsConfigurations:
+          '[/**]':
+              allowedOrigins: "*"
+              allowedMethods: "*"
+              allowedHeaders: "*"
+      routes:
+        - id: primabank-client
+          uri: ${CLIENT_URL:http://primabank-client:8080}
+          predicates:
+            - Path=/clients/**
+          filters:
+            - StripPrefix=1
+
+        - id: banker-service
+          uri: ${BANKER_URL:http://banker-service:9091}
+          predicates:
+            - Path=/bankers/**
+          filters:
+            - StripPrefix=1
+
+        - id: test-resilience
+          uri: ${FAKE_URL:http://localhost:5000}
+          predicates:
+            - Path=/test/**
+          filters:
+            - StripPrefix=1
+            - name: CircuitBreaker
+              args:
+                name: primabankCircuitBreaker
+
+# Enable actuator health endpoints
+management:
+  endpoint:
+    exposure:
+      include: '*'
+    health:
+      probes:
+        enabled: true
+      show-details: always
+  health:
+    circuitbreakers:
+      enabled: true
+    ratelimiters:
+      enabled: true
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      primabankCircuitBreaker:
+        registerHealthIndicator: true
+
+  retry:
+    retryAspectOrder: 2
+    instances:
+      testService:
+        enableExponentialBackoff: true
+        exponentialBackoffMultiplier: 2
+        maxAttempts: 3
+        waitDuration: 5s
+
+  ratelimiter:
+    configs:
+      instances:
+        registerHealthIndicator: true
+

@@ -1,0 +1,15 @@
+= Marketing Decision Tree
+
+== Run FastAPI en local
+
+[source,shell]
+----
+uvicorn app.main:app --reload
+----
+
+== Download requirements
+
+[source,shell]
+----
+pip install -r requirements.txt
+----

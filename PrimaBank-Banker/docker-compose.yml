@@ -1,0 +1,16 @@
+version: "3"
+services:
+  product-db:
+    image: postgres
+    restart: always
+    ports:
+      - "40404:5432"
+    environment:
+      - POSTGRES_PASSWORD=helloworld!
+      - POSTGRES_USER=root
+      - POSTGRES_DB=product-db
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready" ]
+      interval: 1s
+      timeout: 5s
+      retries: 10

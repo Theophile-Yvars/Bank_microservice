@@ -1,0 +1,19 @@
+- name: "TravelCard"
+  description: "Enjoy up to 50% off on foreign transaction fees."
+  price: "30"
+  mode: "per year"
+
+- name: "TravelCardGold"
+  description: "Get the card for just €30, plus €15 per month or free with a premium account."
+  price: "5"
+  mode: "per month"
+
+- name: "Virtual Card"
+  description: "A convenient virtual card for your online transactions."
+  price: "1"
+  mode: "per month"
+
+- name: "Carte Crédit Professionnel"
+  description: "Tailored accounts for businesses with features like cash flow management, salary payments, and commercial transactions."
+  price: "1"
+  mode: "per month"

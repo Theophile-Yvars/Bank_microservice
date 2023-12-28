@@ -1,0 +1,70 @@
+<div class="banner">
+  <h3>Transaction</h3>
+</div>
+
+<!-- In your component's template, for example app.component.html -->
+<mat-accordion class="col-12">
+  <mat-expansion-panel>
+    <mat-expansion-panel-header >
+      <mat-panel-title>
+        Generate set of transactions
+      </mat-panel-title>
+    </mat-expansion-panel-header>
+
+    <form [formGroup]="generateForm" (ngSubmit)="onSubmit()" class="inline-form">
+      <div class="row">
+        <mat-form-field appearance="fill" class="col-6">
+          <mat-label>Client</mat-label>
+          <input matInput placeholder="Client" formControlName="client" required>
+        </mat-form-field>
+        <div class="col-6"></div>
+
+        <mat-form-field appearance="fill" class="col-6">
+          <mat-label>Count</mat-label>
+          <input matInput placeholder="Count" formControlName="count" required>
+        </mat-form-field>
+
+        <mat-form-field appearance="fill" class="col-6">
+          <mat-label>Type</mat-label>
+          <mat-select formControlName="type" required>
+            <mat-option value="entreprise">Entreprise</mat-option>
+            <mat-option value="particulier">Particulier</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="fill" class="col-6">
+          <mat-label>Country</mat-label>
+          <mat-select formControlName="targetCountry" required>
+            <mat-option value="france">France</mat-option>
+            <mat-option value="wakanda">Wakanda</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="fill" class="col-6">
+          <mat-label>Percentage</mat-label>
+          <input matInput placeholder="Percentage" formControlName="percentage" required>
+        </mat-form-field>
+
+        <mat-form-field appearance="fill" class="col-6">
+          <mat-label>Origin</mat-label>
+          <mat-select formControlName="origin" required>
+            <mat-option value="internet">Internet</mat-option>
+            <mat-option value="direct">Direct</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="fill" class="col-6">
+          <mat-label>Type percentage</mat-label>
+          <input matInput placeholder="Percentage" formControlName="originPercentage" required>
+        </mat-form-field>
+      </div>
+
+      <div class="mb-2">
+        <button class="btn btn-primary btn-lg" type="submit">Submit</button>
+      </div>
+    </form>
+
+  </mat-expansion-panel>
+
+  <!-- Add more panels as needed -->
+</mat-accordion>

@@ -1,0 +1,381 @@
+version: "3.8"
+services:
+  configurer:
+    image: primabank/configurer:0.0.0
+    ports:
+      - 4100:80
+    networks:
+      - primabank-network
+      - gateway-network
+
+  gateway:
+    image: primabank/gateway:0.0.0
+    ports:
+      - 8088:9090
+    networks:
+      - primabank-network
+      - gateway-network
+
+  service-transaction-backend:
+    image: primabank/transaction:0.0.0
+    environment:
+      - POSTGRES_PASSWORD=root
+      - POSTGRES_USER=root
+      - POSTGRES_DB=transaction
+      - POSTGRES_HOST=service-transaction-bd:5432
+    ports:
+      - "8080:8080"
+    depends_on:
+      kafka:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_started
+      cassandra1:
+        condition: service_started
+    restart: always
+    networks:
+      - primabank-network
+
+  service-transaction-bd:
+    image: postgres:15.2
+    environment:
+      - POSTGRES_PASSWORD=root
+      - POSTGRES_USER=root
+      - POSTGRES_DB=transaction
+    ports:
+      - 10001:5432
+    networks:
+      - transaction-network
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready", "-U", "root" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  primabank-client:
+    image: primabank/client:0.0.0
+    ports:
+      - "8080"
+    environment:
+      - POSTGRES_PASSWORD=root
+      - POSTGRES_USER=root
+      - POSTGRES_DB=clients
+      - POSTGRES_CLIENT=client-bd
+    depends_on:
+      - client-bd
+    restart: always
+    networks:
+      - primabank-network
+
+  client-bd:
+    image: postgres:15.2
+    container_name: client-bd
+    environment:
+      - POSTGRES_PASSWORD=root
+      - POSTGRES_USER=root
+      - POSTGRES_DB=clients
+      - POSTGRES_CLIENT=client-bd
+    ports:
+      - "10003:5432"
+    networks:
+      - client-network
+      - primabank-network
+
+  analysis:
+    image: primabank/analysis:0.0.0
+    container_name: analysis
+    depends_on:
+      analysis-db:
+        condition: service_started
+      kafka:
+        condition: service_healthy
+    ports:
+      - 8084:8080
+    environment:
+      - POSTGRES_PASSWORD=root
+      - POSTGRES_USER=root
+      - POSTGRES_DB=analysis
+      - POSTGRES_HOST=analysis-db
+    networks:
+      - primabank-network
+      - analysis-network
+
+    restart: always
+
+  analysis-db:
+    image: postgres:15.2
+    container_name: analysis-db
+    environment:
+      - POSTGRES_PASSWORD=root
+      - POSTGRES_USER=root
+      - POSTGRES_DB=analysis
+      - POSTGRES_HOST=analysis-db
+    ports:
+      - "10002:5432"
+    networks:
+      - analysis-network
+
+  banker-service:
+    image: primabank/banker-service:0.0.0
+    depends_on:
+      - product-db
+    ports:
+      - "9091:9091"
+    environment:
+      - DB_USER=root
+      - DB_PASSWORD=helloworld!
+      - DB_NAME=product-db
+      - DB_PORT=5432
+      - DB_HOST=product-db
+    networks:
+      - bank-network
+      - primabank-network
+
+  product-db:
+    image: postgres
+    restart: always
+    ports:
+      - "40404:5432"
+    environment:
+      - POSTGRES_PASSWORD=helloworld!
+      - POSTGRES_USER=root
+      - POSTGRES_DB=product-db
+    networks:
+      - bank-network
+
+  marketing:
+    image: primabank/marketing:0.0.0
+    restart: always
+    ports:
+      - "8000:9000"
+    depends_on:
+      marketing-db-slave:
+        condition: service_started
+      kafka:
+        condition: service_healthy
+    networks:
+      - primabank-network
+      - marketing-network
+
+  marketing-decision-tree:
+    image: primabank/marketingdecisiontree:0.0.0
+    restart: always
+    ports:
+      - "8089:8000"
+    depends_on:
+      marketing-db-slave:
+        condition: service_started
+      kafka:
+        condition: service_healthy
+    networks:
+      - primabank-network
+      - marketing-network
+
+  transactionSaver:
+    image: primabank/transaction-saver:0.0.0
+    restart: always
+    ports:
+      - "8888:9000"
+    depends_on:
+      marketing-db-slave:
+        condition: service_started
+      marketing-db-master:
+        condition: service_started
+      kafka:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_started
+    networks:
+      - primabank-network
+      - marketing-network
+
+  marketing-db-master:
+    image: bitnami/postgresql:latest
+    restart: always
+    ports:
+      - "44001:5432"
+    volumes:
+      - ./db.sql:/docker-entrypoint-initdb.d/db.sql
+      - postgresql_master_data:/bitnami/postgresql
+    environment:
+      - POSTGRESQL_REPLICATION_MODE=master
+      - POSTGRESQL_REPLICATION_USER=repl_user
+      - POSTGRESQL_REPLICATION_PASSWORD=repl_password
+      - POSTGRES_PASSWORD=root
+      - POSTGRES_USER=root
+      - POSTGRES_DB=marketing-db
+    networks:
+      - marketing-network
+      - primabank-network
+
+  marketing-db-slave:
+    image: bitnami/postgresql:latest
+    restart: always
+    ports:
+      - "44002:5432"
+    depends_on:
+      - marketing-db-master
+    environment:
+      - POSTGRESQL_REPLICATION_MODE=slave
+      - POSTGRESQL_REPLICATION_USER=repl_user
+      - POSTGRESQL_REPLICATION_PASSWORD=repl_password
+      - POSTGRESQL_MASTER_HOST=marketing-db-master
+      - POSTGRESQL_PASSWORD=root
+      - POSTGRESQL_MASTER_PORT_NUMBER=5432
+      - POSTGRES_PASSWORD=root
+      - POSTGRES_USER=root
+      - POSTGRES_DB=marketing-db
+    networks:
+      - marketing-network
+      - primabank-network
+
+  stats:
+    image: primabank/stats:0.0.0
+    restart: always
+    ports:
+      - "8083:9000"
+    depends_on:
+      stats-db:
+        condition: service_started
+      kafka:
+        condition: service_healthy
+    networks:
+      - primabank-network
+
+  stats-db:
+    image: postgres:15.2
+    ports:
+      - "44000:5432"
+    environment:
+      - POSTGRES_PASSWORD=stats
+      - POSTGRES_USER=root
+      - POSTGRES_DB=stats-db
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready", "-U", "root" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - primabank-network
+
+  transaction-lb:
+    image: nginx:latest
+    depends_on:
+      - service-transaction-backend
+    volumes:
+      - ./nginx/load-balancer.conf:/etc/nginx/nginx.conf:ro
+    ports:
+      - "4000:4000"
+    networks:
+      - primabank-network
+
+  client-lb:
+    image: nginx:latest
+    depends_on:
+      - primabank-client
+    volumes:
+      - ./nginx-client/load-balancer.conf:/etc/nginx/nginx.conf:ro
+    ports:
+      - "4001:4000"
+    networks:
+      - primabank-network
+      - client-network
+
+  kafka:
+    image: docker.io/bitnami/kafka:3.5
+    ports:
+      - "9092:9092"
+      - "9093:9093"
+      - "9094:9094"
+    environment:
+      - KAFKA_CFG_NODE_ID=0
+      - KAFKA_CFG_PROCESS_ROLES=controller,broker
+      - KAFKA_CFG_LISTENERS=PLAINTEXT://:9092,CONTROLLER://:9093,EXTERNAL://:9094
+      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9092,EXTERNAL://localhost:9094
+      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,EXTERNAL:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=0@kafka:9093
+      - KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER
+      - KAFKA_AUTO_CREATE_TOPICS_ENABLE=false
+      - KAFKA_URL=kafka:9092
+    healthcheck:
+      #test: "topics=$(kafka-topics.sh --bootstrap-server kafka:9092 --list) && { [[ $topics == *'test'* ]] && [[ $topics == *'test2'* ]] && [[ $topics == *'monitoring'* ]] && [[ $topics == *'checkup'* ]] && [[ $topics == *'launch'* ]] && [[ $topics == *'remote-control'* ]]; } && echo 'All specified topics are healthy' || echo 'Not all specified topics are healthy'"
+      test: "kafka-topics.sh --bootstrap-server kafka:9092 --list | grep primabanktransaction"
+      interval: 10s
+      timeout: 15s
+      retries: 50
+    networks:
+      - primabank-network
+
+  redis:
+    image: "redis:latest"
+    ports:
+      - "6379:6379"
+    networks:
+      - primabank-network
+    ## add password
+
+  rabbitmq:
+    container_name: rabbitmq
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"
+      - "15672:15672" 
+    networks:
+      - primabank-network
+
+  init-kafka:
+    image: docker.io/bitnami/kafka:3.5
+    depends_on:
+      kafka:
+        condition: service_started
+    entrypoint: [ '/bin/sh', '-c' ]
+    networks:
+      - primabank-network
+    command: |
+      "
+      # blocks until kafka is reachable
+      kafka-topics --bootstrap-server kafka:9092 --list
+
+      echo -e 'Creating kafka topics'
+      kafka-topics.sh --bootstrap-server kafka:9092 --create --if-not-exists --topic primabanktransaction --replication-factor 1 --partitions 1
+
+      echo -e 'Successfully created the following topics:'
+      kafka-topics --bootstrap-server kafka:9092 --list
+      "
+
+  cassandra1:
+    image: cassandra:latest
+    container_name: cassandra1
+    ports:
+      - "9042:9042"
+    environment:
+      - CASSANDRA_SEEDS=cassandra1,cassandra2
+    networks:
+      - primabank-network
+
+  cassandra2:
+    image: cassandra:latest
+    container_name: cassandra2
+    ports:
+      - "9043:9042"
+    environment:
+      - CASSANDRA_SEEDS=cassandra1,cassandra2
+    networks:
+      - primabank-network
+
+networks:
+  transaction-network:
+  primabank-network:
+  analysis-network:
+  bank-network:
+  client-network:
+  gateway-network:
+  marketing-network:
+
+
+volumes:
+  postgresql_master_data:
+
+

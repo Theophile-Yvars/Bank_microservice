@@ -1,0 +1,51 @@
+.offer-item{
+    align-self: center;
+}
+
+.offer-container{
+    display: flex;
+    flex-direction: row;
+    height: 200px;
+    width: 1000px;
+}
+
+.image-container{
+
+}
+
+.offers{
+    display: flex;
+    flex-direction: column;
+    gap: 50px;
+    margin-top: 100px;
+}
+
+.image-container {
+    width: 50%;
+    height: 100%;
+    text-align: -webkit-center;
+}
+
+.text-container{
+    width: 50%;
+    place-self: center;
+    font-size: 29px;
+    border-left: 1px solid #D4D4D4;
+    padding-left: 60px;
+}
+
+.image-container img {
+    width: auto; /* Pour que l'image occupe la largeur complète de son conteneur */
+    height: 100%; /* Pour maintenir le ratio hauteur-largeur original de l'image */
+}
+
+.text-title{
+    font-weight: bolder;
+    font-size: 39px;
+}
+
+.offers-title{
+    font-size: 40px;
+    margin-top: 50px;
+    margin-left: 50px;
+}

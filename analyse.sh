@@ -1,0 +1,1 @@
+curl --location 'http://localhost:8000/marketing/analysis'

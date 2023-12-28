@@ -1,0 +1,47 @@
+.info-client{
+    border-radius: 4px;
+    border: 1px solid #09907a;
+    width: 300px;
+    height: 300px;
+    margin-top: 100px;
+    text-align: -webkit-center;
+}
+
+.info-client-content{
+    text-align: -webkit-center;
+}
+
+.infos{
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.info-id {
+    height: 50%;
+    display: flex; /* Ajout de la propriété display:flex */
+    align-items: center; /* Centrage vertical */
+    justify-content: center;
+    color: #09907a;
+    font-size: 30px;
+}
+
+.info-offers {
+    height: 50%;
+    display: flex; /* Ajout de la propriété display:flex */
+    align-items: center; /* Centrage vertical */
+    justify-content: center;
+}
+
+.info-button{
+    border: #09907a 1px solid;
+    border-radius: 4px;
+    padding: 10px;
+    font-size: 25px;
+    color: #09907a;
+    box-shadow: 2px 2px 1px #09907a;
+}
+
+.info-button:hover {
+    box-shadow: -2px -2px 1px #09907a; /* Inversion de la box shadow lors du survol */
+}

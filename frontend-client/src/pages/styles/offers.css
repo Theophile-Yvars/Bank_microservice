@@ -1,0 +1,19 @@
+.header-offers{
+    display: flex;
+    flex-direction: row;
+    padding-bottom: 21px;
+    border-bottom: 1px solid #09907a;
+    margin-top: 20px;
+}
+
+.header-img{
+
+}
+
+.header-title{
+    align-self: center;
+    font-size: 35px;
+    width: 100%;
+    text-align-last: center;
+    color: #09907a;
+}

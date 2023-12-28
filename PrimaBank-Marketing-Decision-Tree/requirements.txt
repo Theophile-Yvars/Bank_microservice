@@ -1,0 +1,14 @@
+fastapi
+uvicorn
+aiokafka==0.8.1
+kafka-python==2.0.2
+setuptools
+python-dotenv
+sqlalchemy
+scikit-learn
+psycopg2
+configparser
+graphviz
+matplotlib
+dtreeviz
+requests
